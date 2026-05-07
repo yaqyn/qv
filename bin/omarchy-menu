@@ -386,7 +386,7 @@ show_setup_default_terminal_menu() {
 
 show_setup_default_editor_menu() {
   local options=""
-  omarchy-cmd-present code && options="$options󰨞  VSCode"
+  omarchy-cmd-present code && options="$options  VSCode"
   omarchy-cmd-present cursor && options="${options:+$options\n}  Cursor"
   omarchy-cmd-present zed && options="${options:+$options\n}  Zed"
   omarchy-cmd-present sublime_text && options="${options:+$options\n}  Sublime Text"
@@ -397,7 +397,7 @@ show_setup_default_editor_menu() {
 
   local current=""
   case "$(omarchy-default-editor)" in
-  code) current="󰨞  VSCode" ;;
+  code) current="  VSCode" ;;
   cursor) current="  Cursor" ;;
   zed) current="  Zed" ;;
   sublime_text) current="  Sublime Text" ;;
@@ -501,7 +501,8 @@ show_install_service_menu() {
 }
 
 show_install_editor_menu() {
-  case $(menu "Install" "  VSCode\n  Cursor\n  Zed\n  Sublime Text\n  Helix\n  Vim\n  Emacs") in
+  case $(menu "Install" "  Neovim\n  VSCode\n  Cursor\n  Zed\n  Sublime Text\n  Helix\n  Vim\n  Emacs") in
+  *Neovim*) present_terminal omarchy-nvim-setup ;;
   *VSCode*) present_terminal omarchy-install-vscode ;;
   *Cursor*) install_and_launch "Cursor" "cursor-bin" "cursor" ;;
   *Zed*) present_terminal omarchy-install-zed ;;

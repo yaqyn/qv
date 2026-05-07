@@ -10,9 +10,9 @@ if (($# == 0)); then
 fi
 
 case "$1" in
-code) editor="code"; name="VSCode"; glyph="󰨞" ;;
+code) editor="code"; name="VSCode"; glyph="" ;;
 cursor) editor="cursor"; name="Cursor"; glyph="" ;;
-zed) editor="zed"; name="Zed"; glyph="󰵁" ;;
+zed) editor="zed"; name="Zed"; glyph="" ;;
 sublime_text) editor="sublime_text"; name="Sublime Text"; glyph="" ;;
 helix) editor="helix"; name="Helix"; glyph="" ;;
 vim) editor="vim"; name="Vim"; glyph="" ;;
