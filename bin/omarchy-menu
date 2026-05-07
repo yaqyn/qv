@@ -386,17 +386,18 @@ show_setup_default_terminal_menu() {
 
 show_setup_default_editor_menu() {
   local options=""
-  omarchy-cmd-present code && options="$options  VSCode"
+  omarchy-cmd-present nvim && options="$options  Neovim"
+  omarchy-cmd-present code && options="${options:+$options\n}  VSCode"
   omarchy-cmd-present cursor && options="${options:+$options\n}  Cursor"
   omarchy-cmd-present zed && options="${options:+$options\n}  Zed"
   omarchy-cmd-present sublime_text && options="${options:+$options\n}  Sublime Text"
   omarchy-cmd-present helix && options="${options:+$options\n}  Helix"
   omarchy-cmd-present vim && options="${options:+$options\n}  Vim"
   omarchy-cmd-present emacs && options="${options:+$options\n}  Emacs"
-  omarchy-cmd-present nvim && options="${options:+$options\n}  Neovim"
 
   local current=""
   case "$(omarchy-default-editor)" in
+  nvim) current="  Neovim" ;;
   code) current="  VSCode" ;;
   cursor) current="  Cursor" ;;
   zed) current="  Zed" ;;
@@ -404,10 +405,10 @@ show_setup_default_editor_menu() {
   helix) current="  Helix" ;;
   vim) current="  Vim" ;;
   emacs) current="  Emacs" ;;
-  nvim) current="  Neovim" ;;
   esac
 
   case $(menu "Default Editor" "$options" "" "$current") in
+  *Neovim*) omarchy-default-editor nvim ;;
   *VSCode*) omarchy-default-editor code ;;
   *Cursor*) omarchy-default-editor cursor ;;
   *Zed*) omarchy-default-editor zed ;;
@@ -415,7 +416,6 @@ show_setup_default_editor_menu() {
   *Helix*) omarchy-default-editor helix ;;
   *Vim*) omarchy-default-editor vim ;;
   *Emacs*) omarchy-default-editor emacs ;;
-  *Neovim*) omarchy-default-editor nvim ;;
   *) show_setup_default_menu ;;
   esac
 }
