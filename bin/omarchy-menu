@@ -277,7 +277,7 @@ show_setup_menu() {
   local options="  Audio\n  Wifi\n󰂯  Bluetooth\n󱐋  Power Profile\n  System Sleep\n󰍹  Monitors"
   [[ -f ~/.config/hypr/bindings.conf ]] && options="$options\n  Keybindings"
   [[ -f ~/.config/hypr/input.conf ]] && options="$options\n  Input"
-  options="$options\n󰱔  DNS\n  Security\n  Defaults\n  Config"
+  options="$options\n  Defaults\n󰱔  DNS\n  Security\n  Config"
 
   case $(menu "Setup" "$options") in
   *Audio*) omarchy-launch-audio ;;
@@ -288,9 +288,9 @@ show_setup_menu() {
   *Monitors*) open_in_editor ~/.config/hypr/monitors.conf ;;
   *Keybindings*) open_in_editor ~/.config/hypr/bindings.conf ;;
   *Input*) open_in_editor ~/.config/hypr/input.conf ;;
+  *Defaults*) show_setup_default_menu ;;
   *DNS*) present_terminal omarchy-setup-dns ;;
   *Security*) show_setup_security_menu ;;
-  *Defaults*) show_setup_default_menu ;;
   *Config*) show_setup_config_menu ;;
   *) show_main_menu ;;
   esac
@@ -335,7 +335,7 @@ show_setup_default_browser_menu() {
   browser_desktop_exists brave-origin-beta.desktop && options="${options:+$options\n}󰖟  Brave Origin"
   browser_desktop_exists microsoft-edge.desktop && options="${options:+$options\n}󰇩  Edge"
   browser_desktop_exists firefox.desktop && options="${options:+$options\n}󰈹  Firefox"
-  browser_desktop_exists zen.desktop && options="${options:+$options\n}󰰷  Zen"
+  browser_desktop_exists zen.desktop && options="${options:+$options\n}󰖟  Zen"
 
   local current=""
   case "$(omarchy-default-browser)" in
@@ -345,7 +345,7 @@ show_setup_default_browser_menu() {
   brave-origin) current="󰖟  Brave Origin" ;;
   edge) current="󰇩  Edge" ;;
   firefox) current="󰈹  Firefox" ;;
-  zen) current="󰰷  Zen" ;;
+  zen) current="󰖟  Zen" ;;
   esac
 
   case $(menu "Default Browser" "$options" "" "$current") in
@@ -477,7 +477,7 @@ show_install_menu() {
 }
 
 show_install_browser_menu() {
-  case $(menu "Install" "  Chrome\n  Edge\n  Brave\n  Brave Origin\n  Firefox\n  Zen") in
+  case $(menu "Install" "  Chrome\n  Edge\n  Brave\n  Brave Origin\n  Firefox\n󰖟  Zen") in
   *Chrome*) present_terminal "omarchy-install-browser chrome" ;;
   *Edge*) present_terminal "omarchy-install-browser edge" ;;
   *"Brave Origin"*) present_terminal "omarchy-install-browser brave-origin" ;;
@@ -501,8 +501,7 @@ show_install_service_menu() {
 }
 
 show_install_editor_menu() {
-  case $(menu "Install" "  Neovim\n  VSCode\n  Cursor\n  Zed\n  Sublime Text\n  Helix\n  Vim\n  Emacs") in
-  *Neovim*) present_terminal omarchy-nvim-setup ;;
+  case $(menu "Install" "  VSCode\n  Cursor\n  Zed\n  Sublime Text\n  Helix\n  Vim\n  Emacs") in
   *VSCode*) present_terminal omarchy-install-vscode ;;
   *Cursor*) install_and_launch "Cursor" "cursor-bin" "cursor" ;;
   *Zed*) present_terminal omarchy-install-zed ;;
