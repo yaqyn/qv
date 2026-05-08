@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# omarchy:summary=Ask Pi a question and show the answer as a notification
+# omarchy:group=ai
+# omarchy:name=prompt
+# omarchy:args=[--speak] [prompt]
+# omarchy:examples=omarchy ai prompt|omarchy-ai-prompt --speak "Summarize this"
+
+set -euo pipefail
+
+state_home=${XDG_STATE_HOME:-$HOME/.local/state}/omarchy
+state_dir="$state_home/indicators"
+session_file="$state_home/agent/prompt.jsonl"
+state_file="$state_dir/ai"
+mkdir -p "$state_dir" "$(dirname "$session_file")"
+
+markdown_to_pango() {
+  sed -E \
+    -e 's/&/\&amp;/g' \
+    -e 's/</\&lt;/g' \
+    -e 's/>/\&gt;/g' \
+    -e 's/`([^`]+)`/<tt>\1<\/tt>/g' \
+    -e 's/\*\*([^*]+)\*\*/<b>\1<\/b>/g' \
+    -e 's/__([^_]+)__/<b>\1<\/b>/g' \
+    -e 's/\*([^*]+)\*/<i>\1<\/i>/g' \
+    -e 's/_([^_]+)_/<i>\1<\/i>/g' \
+    -e 's/~~([^~]+)~~/<s>\1<\/s>/g'
+}
+
+speak=false
+if (($# > 0)) && [[ ${1:-} == "--speak" ]]; then
+  speak=true
+  shift
+fi
+
+if (($# > 0)); then
+  prompt="$*"
+else
+  prompt=$(omarchy-menu-input "Ask AI" --width 800 || true)
+fi
+
+prompt=$(sed 's/^[[:space:]]*//; s/[[:space:]]*$//' <<<"$prompt")
+[[ -n $prompt ]] || exit 0
+
+cleanup() {
+  rm -f "$state_file"
+  pkill -RTMIN+11 waybar 2>/dev/null || true
+}
+trap cleanup EXIT
+
+echo "thinking" >"$state_file"
+pkill -RTMIN+11 waybar 2>/dev/null || true
+
+if answer=$(pi -p \
+  --session "$session_file" \
+  --model gemini-2.5-flash-lite \
+  --skill "$HOME/.pi/agent/skills/omarchy" \
+  --skill "$HOME/.pi/agent/git/github.com/badlogic/pi-skills/brave-search" \
+  --append-system-prompt "For Omarchy desktop/system/config questions, load and follow the omarchy skill before answering. For current facts, historical facts, documentation, or questions that need web context, use the brave-search skill when BRAVE_API_KEY is available; otherwise answer from general knowledge and say when uncertain." \
+  "$prompt" 2>&1); then
+  if [[ $speak == true ]]; then
+    omarchy-ai-speak "$answer"
+  else
+    formatted_answer=$(markdown_to_pango <<<"$answer")
+    omarchy-notification-send "󱚣" "Oma" "$formatted_answer" -t 10000
+  fi
+else
+  omarchy-notification-send "󱚡" "Oma failed" "$answer" -u critical -t 10000
+  exit 1
+fi

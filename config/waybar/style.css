@@ -82,6 +82,7 @@ tooltip {
   opacity: 0;
 }
 
+#custom-ai-indicator,
 #custom-screenrecording-indicator,
 #custom-idle-indicator,
 #custom-notification-silencing-indicator {
@@ -92,6 +93,7 @@ tooltip {
   padding-bottom: 1px;
 }
 
+#custom-ai-indicator.active,
 #custom-screenrecording-indicator.active {
   color: #a55555;
 }

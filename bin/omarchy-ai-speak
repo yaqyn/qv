@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# omarchy:summary=Speak text using Piper TTS
+# omarchy:group=ai
+# omarchy:name=speak
+# omarchy:args=[text]
+# omarchy:examples=omarchy ai speak "Hello"
+
+set -euo pipefail
+
+voice_dir=${XDG_DATA_HOME:-$HOME/.local/share}/omarchy/piper
+model="$voice_dir/en_US-amy-medium.onnx"
+config="$voice_dir/en_US-amy-medium.onnx.json"
+output=${XDG_RUNTIME_DIR:-/tmp}/omarchy-ai-speak.wav
+
+mkdir -p "$voice_dir" "$(dirname "$output")"
+
+if (($# > 0)); then
+  text="$*"
+else
+  text=$(cat)
+fi
+
+text=$(sed 's/^[[:space:]]*//; s/[[:space:]]*$//' <<<"$text")
+[[ -n $text ]] || exit 0
+
+if [[ ! -f $model ]]; then
+  curl -L --fail -o "$model" "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx"
+fi
+
+if [[ ! -f $config ]]; then
+  curl -L --fail -o "$config" "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx.json"
+fi
+
+uvx --from piper-tts piper --model "$model" --config "$config" --output-file "$output" <<<"$text" >/dev/null
+pw-play "$output"

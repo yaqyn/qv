@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# omarchy:summary=Record speech, transcribe it with Voxtype, and ask Pi
+# omarchy:group=ai
+# omarchy:name=prompt-transcribe
+# omarchy:hidden=true
+
+set -euo pipefail
+
+runtime_dir=${XDG_RUNTIME_DIR:-/tmp}/omarchy
+state_dir=${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/indicators
+pid_file="$runtime_dir/prompt-transcribe.pid"
+wav_file="$runtime_dir/prompt-transcribe.wav"
+state_file="$state_dir/ai"
+log_file="$runtime_dir/prompt-transcribe.log"
+mkdir -p "$runtime_dir" "$state_dir"
+
+log() {
+  printf '[%s] %s\n' "$(date '+%F %T')" "$*" >>"$log_file"
+}
+
+show_indicator() {
+  echo "listening" >"$state_file"
+  pkill -RTMIN+11 waybar 2>/dev/null || true
+}
+
+hide_indicator() {
+  rm -f "$state_file"
+  pkill -RTMIN+11 waybar 2>/dev/null || true
+}
+
+log "started: ${1:-toggle}"
+
+case "${1:-toggle}" in
+  start)
+    if [[ -s $pid_file ]] && kill -0 "$(<"$pid_file")" 2>/dev/null; then
+      exit 0
+    fi
+
+    show_indicator
+    rm -f "$wav_file"
+    pw-record --target @DEFAULT_SOURCE@ --format s16 --rate 16000 --channels 1 "$wav_file" >>"$log_file" 2>&1 &
+    echo $! >"$pid_file"
+    log "recording started with pid $(<"$pid_file")"
+    ;;
+  stop)
+    if [[ -s $pid_file ]]; then
+      pid=$(<"$pid_file")
+      log "stopping recorder pid $pid"
+      kill "$pid" 2>/dev/null || true
+
+      for _ in {1..20}; do
+        kill -0 "$pid" 2>/dev/null || break
+        sleep 0.05
+      done
+
+      rm -f "$pid_file"
+    else
+      log "no pid file found"
+    fi
+
+    if [[ ! -s $wav_file ]]; then
+      log "no recording found, exiting"
+      hide_indicator
+      exit 0
+    fi
+
+    log "transcribing $(stat -c%s "$wav_file") bytes"
+    if transcript=$(voxtype transcribe "$wav_file" 2>>"$log_file"); then
+      log "transcription length: ${#transcript}"
+    else
+      status=$?
+      rm -f "$wav_file"
+      log "transcription failed with status $status"
+      hide_indicator
+      omarchy-notification-send "󱚣" "AI transcription failed" "Voxtype could not transcribe the prompt." -u critical
+      exit 1
+    fi
+
+    rm -f "$wav_file"
+    transcript=$(sed 's/^[[:space:]]*//; s/[[:space:]]*$//' <<<"$transcript")
+    if [[ -z $transcript ]]; then
+      log "empty transcription, exiting"
+      hide_indicator
+      exit 0
+    fi
+
+    log "sending transcript to omarchy-ai-prompt"
+    omarchy-ai-prompt --speak "$transcript"
+    log "omarchy-ai-prompt finished"
+    ;;
+  *)
+    echo "Usage: omarchy-ai-prompt-transcribe start|stop"
+    exit 1
+    ;;
+esac
