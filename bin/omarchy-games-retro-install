@@ -22,8 +22,6 @@ fi
 
 if [[ $core == */* ]]; then
   core_path="$core"
-elif [[ $core == *.so ]]; then
-  core_path="/usr/lib/libretro/$core"
 else
   core_path="/usr/lib/libretro/${core}_libretro.so"
 fi
@@ -38,9 +36,11 @@ desktop_name="$game_name"
 desktop_id=$(printf '%s' "$desktop_name" | tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:]' '-' | sed 's/^-//; s/-$//')
 desktop_dir="$HOME/.local/share/applications"
 desktop_file="$desktop_dir/$desktop_id.desktop"
-icon_path="$HOME/.local/share/omarchy/applications/icons/Retro Gaming.png"
+icon_dir="$desktop_dir/icons"
+icon_path="$icon_dir/Retro Gaming.png"
 
-mkdir -p "$desktop_dir"
+mkdir -p "$desktop_dir" "$icon_dir"
+[[ -f $icon_path ]] || cp "$HOME/.local/share/omarchy/applications/icons/Retro Gaming.png" "$icon_path"
 
 cat >"$desktop_file" <<EOF
 [Desktop Entry]
@@ -58,4 +58,4 @@ EOF
 chmod +x "$desktop_file"
 update-desktop-database "$desktop_dir" &>/dev/null || true
 
-echo "Created $desktop_file"
+omarchy-notification-send -g "󰯉" "$game_name installed" "Start it with Super + Space"
