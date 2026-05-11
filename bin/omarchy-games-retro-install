@@ -10,7 +10,7 @@ if (( $# == 0 )); then
   mapfile -t cores < <(omarchy-games-retro-cores)
 
   if (( ${#cores[@]} == 0 )); then
-    omarchy-notification-send -g "" "No RetroArch cores found" "/usr/lib/libretro"
+    omarchy-notification-send -g "󰯉" "No RetroArch cores found" "/usr/lib/libretro"
     exit 1
   fi
 
