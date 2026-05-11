@@ -602,7 +602,7 @@ show_install_ai_menu() {
 show_install_gaming_menu() {
   case $(menu "Install" "  Steam\n  RetroArch\n󰍳  Minecraft\n󰢹  NVIDIA GeForce NOW\n  Xbox Cloud Gaming\n󰂯  Xbox Controller\n󰍹  Moonlight (GameStream)\n  Lutris (Battle.net)\n󱓟  Heroic (Epic Games)\n  RetroArch Game Launcher") in
   *Steam*) present_terminal omarchy-install-gaming-steam ;;
-  *"RetroArch Game"*) install_retro_game ;;
+  *"RetroArch Game Launcher"*) omarchy-games-retro-install ;;
   *RetroArch*) present_terminal omarchy-install-gaming-retroarch ;;
   *Minecraft*) install_and_launch "Minecraft" "minecraft-launcher" "minecraft-launcher" ;;
   *GeForce*) present_terminal omarchy-install-gaming-geforce-now ;;
@@ -613,25 +613,6 @@ show_install_gaming_menu() {
   *Moonlight*) present_terminal omarchy-install-gaming-moonlight ;;
   *) show_install_menu ;;
   esac
-}
-
-install_retro_game() {
-  mapfile -t cores < <(omarchy-games-retro-cores)
-
-  if (( ${#cores[@]} == 0 )); then
-    omarchy-notification-send -g "" "No RetroArch cores found" "/usr/lib/libretro"
-    return
-  fi
-
-  core=$(omarchy-menu-select "RetroArch core" "${cores[@]}") || return
-  [[ -n $core ]] || return
-  core="${core##*(}"
-  core="${core%)}"
-
-  game=$(omarchy-menu-file "Retro game" "$HOME/Games/roms" "7z bin ccd chd cue dmg elf fds gb gba gbc iso lha m3u md n64 nds nes pbp sfc smc swc zip z64") || return
-  [[ -n $game ]] || return
-
-  omarchy-games-retro-install "$core" "$game"
 }
 
 show_install_style_menu() {
